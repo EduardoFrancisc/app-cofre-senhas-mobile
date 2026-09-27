@@ -1,31 +1,60 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { Button } from '@/components/ui/button';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { radius, spacing } from '@/constants/theme';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function VaultScreen() {
+  const theme = useAppTheme();
   const { user, signOut } = useAuth();
+  const [isConfirmingSignOut, setIsConfirmingSignOut] = useState(false);
+
+  const handleConfirmSignOut = () => {
+    setIsConfirmingSignOut(false);
+    // `Stack.Protected` no layout raiz reage ao token nulo e leva para o login.
+    void signOut();
+  };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['bottom']}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]} edges={['bottom']}>
       <View style={styles.container}>
         <View style={styles.welcome}>
-          <Text style={styles.welcomeText}>Olá, {user?.name ?? 'usuário'} 👋</Text>
-          <Text style={styles.subtitle}>Seu cofre está seguro.</Text>
+          <Text style={[styles.welcomeText, { color: theme.text }]}>Olá, {user?.name ?? 'usuário'}</Text>
+          <Text style={[styles.subtitle, { color: theme.textMuted }]}>Seu cofre está protegido.</Text>
         </View>
 
         <View style={styles.emptyState}>
           <Text style={styles.emptyEmoji}>🗝️</Text>
-          <Text style={styles.emptyTitle}>Nenhuma senha cadastrada</Text>
-          <Text style={styles.emptySubtitle}>
-            Toque em "+" para adicionar sua primeira entrada.
+          <Text style={[styles.emptyTitle, { color: theme.text }]}>Nenhuma senha cadastrada</Text>
+          <Text style={[styles.emptySubtitle, { color: theme.textMuted }]}>
+            Suas entradas aparecerão aqui. A criação de entradas ainda não está disponível nesta versão.
           </Text>
         </View>
 
-        <TouchableOpacity style={styles.logoutButton} onPress={signOut} activeOpacity={0.8}>
-          <Text style={styles.logoutText}>Sair da conta</Text>
-        </TouchableOpacity>
+        <Button
+          testID="vault-sign-out-button"
+          label="Sair da conta"
+          variant="secondary"
+          onPress={() => setIsConfirmingSignOut(true)}
+          style={[styles.signOut, { borderColor: theme.danger }]}
+          leftAccessory={<Text style={[styles.signOutIcon, { color: theme.danger }]}>⏻</Text>}
+        />
       </View>
+
+      <ConfirmDialog
+        visible={isConfirmingSignOut}
+        title="Sair da conta"
+        message="Você precisará entrar novamente para acessar seu cofre."
+        confirmLabel="Sair"
+        cancelLabel="Cancelar"
+        destructive
+        onConfirm={handleConfirmSignOut}
+        onCancel={() => setIsConfirmingSignOut(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -33,31 +62,28 @@ export default function VaultScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0F172A',
   },
   container: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    gap: 24,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.lg,
+    gap: spacing.xl,
   },
   welcome: {
-    gap: 4,
+    gap: spacing.xs,
   },
   welcomeText: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#F1F5F9',
   },
   subtitle: {
     fontSize: 14,
-    color: '#64748B',
   },
   emptyState: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
+    gap: spacing.md,
   },
   emptyEmoji: {
     fontSize: 64,
@@ -65,24 +91,17 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#CBD5E1',
   },
   emptySubtitle: {
     fontSize: 14,
-    color: '#64748B',
+    lineHeight: 20,
     textAlign: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: spacing.xl,
   },
-  logoutButton: {
-    borderWidth: 1,
-    borderColor: '#EF4444',
-    borderRadius: 12,
-    paddingVertical: 14,
-    alignItems: 'center',
+  signOut: {
+    borderRadius: radius.md,
   },
-  logoutText: {
-    color: '#EF4444',
+  signOutIcon: {
     fontSize: 15,
-    fontWeight: '600',
   },
 });

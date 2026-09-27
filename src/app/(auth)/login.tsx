@@ -1,132 +1,121 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ActivityIndicator,
-} from 'react-native';
-import { Link } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import { Link, useLocalSearchParams } from 'expo-router';
+
+import { AuthScreen } from '@/components/ui/auth-screen';
+import { Button } from '@/components/ui/button';
+import { ErrorBanner } from '@/components/ui/error-banner';
+import { TextField } from '@/components/ui/text-field';
+import { spacing } from '@/constants/theme';
+import { useAppTheme } from '@/hooks/use-app-theme';
 import { useAuth } from '@/hooks/useAuth';
+import { useAuthForm } from '@/hooks/use-auth-form';
+import type { LoginCredentials } from '@/types/auth.types';
+import { validateLoginForm } from '@/utils/validation';
 
 export default function LoginScreen() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const theme = useAppTheme();
   const { signIn } = useAuth();
+  // Preenchido pelo cadastro quando o auto-login não é possível.
+  const { email: emailFromRegister } = useLocalSearchParams<{ email?: string | string[] }>();
 
-  async function handleLogin() {
-    if (!email.trim() || !password.trim()) {
-      Alert.alert('Campos obrigatórios', 'Preencha o e-mail e a senha.');
-      return;
-    }
+  const [email, setEmail] = useState(() => (typeof emailFromRegister === 'string' ? emailFromRegister : ''));
+  const [password, setPassword] = useState('');
 
-    setIsSubmitting(true);
-    try {
-      await signIn({ email: email.trim(), password });
-    } catch (error: any) {
-      const status = error?.response?.status;
-      if (status === 401 || status === 403) {
-        Alert.alert('Credenciais inválidas', 'E-mail ou senha incorretos.');
-      } else if (!error?.response) {
-        Alert.alert('Sem conexão', 'Verifique sua conexão com a internet.');
-      } else {
-        Alert.alert('Erro', 'Ocorreu um erro inesperado. Tente novamente.');
+  const { fieldErrors, serverError, isSubmitting, handleSubmit, handleFieldChange } = useAuthForm<
+    LoginCredentials,
+    'email' | 'password'
+  >({
+    validate: validateLoginForm,
+    context: 'login-form',
+    fallbackErrorTitle: 'Não foi possível entrar',
+    mapServerFieldErrors: (serverErrors) => {
+      const mapped: Partial<Record<'email' | 'password', string>> = {};
+      for (const [key, message] of Object.entries(serverErrors)) {
+        // O backend chama a senha de `senha`.
+        if (key === 'senha' || key === 'password') mapped.password = message;
+        if (key === 'email') mapped.email = message;
       }
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
+      return mapped;
+    },
+  });
+
+  // <Link asChild> renderiza via <Slot>, que não aceita arrays de estilo.
+  const linkStyle = StyleSheet.flatten([styles.footerLink, { color: theme.primary }]);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView
-        style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        <View style={styles.header}>
-          <Text style={styles.emoji}>🔐</Text>
-          <Text style={styles.title}>Cofre de Senhas</Text>
-          <Text style={styles.subtitle}>Acesse sua conta</Text>
-        </View>
+    <AuthScreen>
+      <View style={styles.header}>
+        <Text style={styles.emoji}>🔐</Text>
+        <Text style={[styles.title, { color: theme.text }]}>Cofre de Senhas</Text>
+        <Text style={[styles.subtitle, { color: theme.textMuted }]}>Acesse sua conta</Text>
+      </View>
 
-        <View style={styles.form}>
-          <Text style={styles.label}>E-mail</Text>
-          <TextInput
-            style={styles.input}
-            value={email}
-            onChangeText={setEmail}
-            placeholder="seu@email.com"
-            placeholderTextColor="#9CA3AF"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-            returnKeyType="next"
-            testID="login-email-input"
-          />
+      <View style={styles.form}>
+        <ErrorBanner
+          testID="login-error-banner"
+          title={serverError?.title ?? ''}
+          message={serverError?.message}
+        />
 
-          <Text style={styles.label}>Senha</Text>
-          <TextInput
-            style={styles.input}
-            value={password}
-            onChangeText={setPassword}
-            placeholder="••••••••"
-            placeholderTextColor="#9CA3AF"
-            secureTextEntry
-            returnKeyType="done"
-            onSubmitEditing={handleLogin}
-            testID="login-password-input"
-          />
+        <TextField
+          testID="login-email-input"
+          label="E-mail"
+          value={email}
+          onChangeText={handleFieldChange('email', setEmail)}
+          placeholder="seu@email.com"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoCorrect={false}
+          autoComplete="email"
+          textContentType="emailAddress"
+          returnKeyType="next"
+          error={fieldErrors.email}
+        />
 
-          <TouchableOpacity
-            style={[styles.button, isSubmitting && styles.buttonDisabled]}
-            onPress={handleLogin}
-            disabled={isSubmitting}
-            activeOpacity={0.8}
-            testID="login-submit-button"
-          >
-            {isSubmitting ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={styles.buttonText}>Entrar</Text>
-            )}
-          </TouchableOpacity>
-        </View>
+        <TextField
+          testID="login-password-input"
+          label="Senha"
+          variant="password"
+          value={password}
+          onChangeText={handleFieldChange('password', setPassword)}
+          placeholder="Sua senha"
+          autoCapitalize="none"
+          autoCorrect={false}
+          autoComplete="current-password"
+          textContentType="password"
+          returnKeyType="go"
+          onSubmitEditing={() => void handleSubmit({ email, password }, signIn)}
+          error={fieldErrors.password}
+        />
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Não tem uma conta? </Text>
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any -- typed routes are auto-generated on first `expo start` */}
-          <Link href={"/(auth)/register" as any} asChild>
-            <TouchableOpacity>
-              <Text style={styles.footerLink}>Cadastre-se</Text>
-            </TouchableOpacity>
-          </Link>
-        </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+        <Button
+          testID="login-submit-button"
+          label="Entrar"
+          loading={isSubmitting}
+          loadingLabel="Entrando..."
+          onPress={() => void handleSubmit({ email, password }, signIn)}
+        />
+      </View>
+
+      <View style={styles.footer}>
+        <Text style={[styles.footerText, { color: theme.textMuted }]}>Ainda não tem conta? </Text>
+        {/*
+          `asChild` faz o Link renderizar este Text através de um <Slot>, que
+          não aceita `style` em array — por isso o StyleSheet.flatten.
+        */}
+        <Link href="/register" asChild>
+          <Text style={linkStyle}>Cadastre-se</Text>
+        </Link>
+      </View>
+    </AuthScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#0F172A',
-  },
-  keyboardView: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-    gap: 24,
-  },
   header: {
     alignItems: 'center',
-    gap: 8,
+    gap: spacing.sm,
   },
   emoji: {
     fontSize: 56,
@@ -134,61 +123,25 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#F1F5F9',
     letterSpacing: -0.5,
   },
   subtitle: {
     fontSize: 15,
-    color: '#94A3B8',
   },
   form: {
-    gap: 8,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#CBD5E1',
-    marginBottom: 2,
-    marginTop: 8,
-  },
-  input: {
-    backgroundColor: '#1E293B',
-    borderWidth: 1,
-    borderColor: '#334155',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    color: '#F1F5F9',
-  },
-  button: {
-    backgroundColor: '#3B82F6',
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  buttonDisabled: {
-    backgroundColor: '#1D4ED8',
-    opacity: 0.7,
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
+    gap: spacing.lg,
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    gap: spacing.xxs,
   },
   footerText: {
-    color: '#94A3B8',
     fontSize: 14,
   },
   footerLink: {
-    color: '#60A5FA',
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
   },
 });

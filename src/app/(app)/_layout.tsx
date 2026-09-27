@@ -1,17 +1,20 @@
 import { Stack } from 'expo-router';
 
+import { useAppTheme } from '@/hooks/use-app-theme';
+
 export default function AppLayout() {
+  const theme = useAppTheme();
+
   return (
-    <Stack>
-      <Stack.Screen
-        name="index"
-        options={{
-          title: '🔐 Meu Cofre',
-          headerStyle: { backgroundColor: '#0F172A' },
-          headerTintColor: '#F1F5F9',
-          headerTitleStyle: { fontWeight: '700' },
-        }}
-      />
+    <Stack
+      screenOptions={{
+        headerStyle: { backgroundColor: theme.background },
+        headerTintColor: theme.text,
+        headerTitleStyle: { fontWeight: '700' },
+        contentStyle: { backgroundColor: theme.background },
+      }}
+    >
+      <Stack.Screen name="index" options={{ title: 'Meu Cofre' }} />
     </Stack>
   );
 }
