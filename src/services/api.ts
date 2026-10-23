@@ -7,16 +7,6 @@ import { normalizeApiError } from './api-error';
 
 export const JWT_TOKEN_KEY = 'cofre_jwt_token';
 
-/**
- * Rotas cujo `401` **não** encerra a sessão automaticamente.
- *
- * Duas situações distintas:
- * - `/auth/login` e `/usuarios`: um 401 aqui significa credenciais inválidas.
- *   Disparar `unauthorized` chamaria `signOut()`, apagando a sessão e
- *   mascarando a causa real do erro.
- * - `/auth/me`: o perfil é consultado em dois momentos (cold start e pós-login)
- *   e cada chamador trata o 401 por conta própria, com o contexto certo.
- */
 const NON_INVALIDATING_PATHS = ['/auth/login', '/auth/register', '/auth/refresh', '/usuarios', '/auth/me'] as const;
 
 function getRequestUrl(error: unknown): string | undefined {
@@ -42,15 +32,6 @@ const api: AxiosInstance = create({
   headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
 });
 
-/* -------------------------------------------------------------------------- */
-/*                            Cache do token                                  */
-/* -------------------------------------------------------------------------- */
-
-/**
- * O interceptor de request é síncrono no axios v1, então não dá para fazer
- * `await storage.getItemAsync` a cada chamada sem adicionar latência. Mantemos
- * o token em memória e invalidamos o cache quando ele muda.
- */
 let cachedToken: string | null = null;
 let isCacheReady = false;
 
@@ -62,15 +43,10 @@ async function readToken(): Promise<string | null> {
   return cachedToken;
 }
 
-/** Mantém o cache em sincronia com o storage. Chamar sempre que o token mudar. */
 export function setTokenCache(token: string | null): void {
   cachedToken = token;
   isCacheReady = true;
 }
-
-/* -------------------------------------------------------------------------- */
-/*                              Interceptadores                               */
-/* -------------------------------------------------------------------------- */
 
 api.interceptors.request.use(async (config) => {
   const token = await readToken();
@@ -89,10 +65,6 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
-/* -------------------------------------------------------------------------- */
-/*                             Eventos de sessão                              */
-/* -------------------------------------------------------------------------- */
 
 type AuthEventType = 'unauthorized';
 
@@ -117,14 +89,6 @@ export const authEvents = {
   },
 };
 
-/* -------------------------------------------------------------------------- */
-/*                                   Request                                  */
-/* -------------------------------------------------------------------------- */
-
-/**
- * Executa uma requisição e devolve apenas o corpo da resposta.
- * Todo erro sai daqui como `ApiError` — as telas nunca recebem axios cru.
- */
 export async function request<T>(config: Parameters<AxiosInstance['request']>[0], context: string): Promise<T> {
   try {
     const response = await api.request<T>(config);
@@ -135,3 +99,4 @@ export async function request<T>(config: Parameters<AxiosInstance['request']>[0]
 }
 
 export default api;
+

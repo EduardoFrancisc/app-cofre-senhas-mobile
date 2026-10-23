@@ -27,7 +27,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
   }, []);
 
-  // Restaura a sessão salva. Roda uma única vez, no cold start.
   useEffect(() => {
     let cancelled = false;
 
@@ -35,14 +34,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const storedToken = await storage.getItem(JWT_TOKEN_KEY);
 
-        if (cancelled) return;
-        if (!storedToken) return;
+        if (cancelled || !storedToken) return;
 
         setTokenCache(storedToken);
         setToken(storedToken);
 
-        // Se o backend ainda não tiver `/auth/me`, mantemos a sessão mesmo
-        // assim — só o nome do usuário fica indisponível.
         const profile = await authService.fetchProfile('');
 
         if (!cancelled && profile.status === 'ok') {
@@ -55,8 +51,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           'restore-session'
         );
 
-        // Token inválido ou expirado: descarta para não ficar preso numa
-        // sessão que nenhuma requisição vai aceitar.
         if (apiError?.kind === 'unauthorized') {
           await storage.deleteItem(JWT_TOKEN_KEY);
           setTokenCache(null);
@@ -73,7 +67,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // Encerra a sessão quando a API responde 401 fora dos endpoints públicos.
   useEffect(() => authEvents.on('unauthorized', () => void signOut()), [signOut]);
 
   const signIn = useCallback(
@@ -88,9 +81,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // O login não devolve o perfil. Buscamos agora para que a interface
-      // não fique mostrando "Olá, usuário" até o próximo cold start.
-      // Falhar aqui não invalida o login: o token já está válido.
       try {
         const profile = await authService.fetchProfile(email);
         if (profile.status === 'ok') setUser(profile.user);
@@ -101,13 +91,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     [persistToken]
   );
 
-  /**
-   * Cadastra a conta e, em seguida, faz o login automaticamente.
-   *
-   * O auto-login é uma conveniência: se a conta for criada com sucesso mas ainda
-   * não puder ser autenticada (ex.: aguardando verificação de e-mail), caímos no
-   * login manual em vez de mostrar um erro para o usuário.
-   */
   const signUp = useCallback(
     async (payload: RegisterPayload): Promise<RegisterResult> => {
       await authService.register(payload);

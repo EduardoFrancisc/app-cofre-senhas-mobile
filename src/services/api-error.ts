@@ -22,12 +22,6 @@ export interface ApiErrorOptions {
   cause?: unknown;
 }
 
-/**
- * Erro de API normalizado.
- *
- * A tela nunca deve inspecionar `error.response.status` diretamente —
- * essa lógica fica concentrada aqui, em `normalizeApiError`.
- */
 export class ApiError extends Error {
   readonly kind: ApiErrorKind;
   readonly status?: number;
@@ -51,22 +45,10 @@ function kindFromStatus(status: number): ApiErrorKind {
   return 'server';
 }
 
-/**
- * Extrai `{ campo: "mensagem" }` dos formatos de erro mais comuns.
- *
- * O backend deste projeto responde:
- * ```json
- * { "erro": "Erro de validação...", "campos": [{ "campo": "senha", "mensagem": "..." }] }
- * ```
- * Também cobrimos Spring Boot padrão, APIs em inglês e formatos flattened
- * (`{ fields: { email: "..." } }`), para não acoplar a UI a um formato só.
- */
 function extractFieldErrors(data: unknown): Record<string, string> | undefined {
   if (typeof data !== 'object' || data === null) return undefined;
 
   const record = data as Record<string, unknown>;
-
-  // Listas de { campo, mensagem } — formato do backend deste projeto.
   const listCandidates = [record.campos, record.errors, record.fieldErrors, record.violations];
 
   for (const candidate of listCandidates) {

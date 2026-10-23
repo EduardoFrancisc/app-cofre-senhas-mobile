@@ -28,8 +28,13 @@ export function ErrorBanner({ title, message, testID }: ErrorBannerProps) {
       accessibilityRole="alert"
       style={[styles.container, { backgroundColor: theme.dangerMuted, borderColor: theme.danger }]}
     >
-      <Text style={[styles.title, { color: theme.danger }]}>{title}</Text>
-      {message ? <Text style={[styles.message, { color: theme.textMuted }]}>{message}</Text> : null}
+      <View style={styles.row}>
+        <Text style={[styles.icon, { color: theme.danger, borderColor: theme.danger }]}>!</Text>
+        <View style={styles.textCol}>
+          <Text style={[styles.title, { color: theme.danger }]}>{title}</Text>
+          {message ? <Text style={[styles.message, { color: theme.textMuted }]}>{message}</Text> : null}
+        </View>
+      </View>
     </View>
   );
 }
@@ -39,7 +44,26 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: radius.md,
     padding: spacing.lg,
-    gap: spacing.xs,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.md,
+  },
+  icon: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 1.5,
+    textAlign: 'center',
+    lineHeight: 19,
+    fontSize: 13,
+    fontWeight: '800',
+    overflow: 'hidden',
+  },
+  textCol: {
+    flex: 1,
+    gap: spacing.xxs,
   },
   title: {
     fontSize: 14,

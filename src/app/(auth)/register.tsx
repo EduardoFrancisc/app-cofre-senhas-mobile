@@ -14,7 +14,6 @@ import { useAuth } from '@/hooks/useAuth';
 import type { RegisterPayload } from '@/types/auth.types';
 import { normalizeEmail, validateRegisterForm, type FieldErrors } from '@/utils/validation';
 
-/** Campos do formulário, incluindo a confirmação que não vai para a API. */
 type RegisterFormValues = RegisterPayload & { confirmPassword: string };
 
 function validateRegisterFormWithConfirmation(values: RegisterFormValues): FieldErrors<RegisterFormValues> {
@@ -29,10 +28,6 @@ function validateRegisterFormWithConfirmation(values: RegisterFormValues): Field
   return errors;
 }
 
-/**
- * O backend nomeia os campos em português (`UsuarioRequestDTO`).
- * Mapeamos para os nomes do formulário, que são em inglês.
- */
 const SERVER_FIELD_ALIASES: Record<string, keyof RegisterFormValues> = {
   nome: 'name',
   name: 'name',
@@ -72,14 +67,12 @@ export default function RegisterScreen() {
     const { autoSignedIn } = await signUp(values);
 
     if (autoSignedIn) {
-      // O guard de `Stack.Protected` leva para o cofre sozinho.
       return;
     }
 
     router.replace({ pathname: '/login', params: { email: normalizeEmail(values.email) } });
   };
 
-  // <Link asChild> renderiza via <Slot>, que não aceita arrays de estilo.
   const linkStyle = StyleSheet.flatten([styles.footerLink, { color: theme.primary }]);
 
   return (
@@ -166,6 +159,7 @@ export default function RegisterScreen() {
           loading={isSubmitting}
           loadingLabel="Criando conta..."
           onPress={() => void handleSubmit({ name, email, password, confirmPassword }, submit)}
+          leftIcon={<Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '700' }}>＋</Text>}
         />
       </View>
 

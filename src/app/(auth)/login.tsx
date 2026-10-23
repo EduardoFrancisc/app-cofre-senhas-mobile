@@ -16,7 +16,6 @@ import { validateLoginForm } from '@/utils/validation';
 export default function LoginScreen() {
   const theme = useAppTheme();
   const { signIn } = useAuth();
-  // Preenchido pelo cadastro quando o auto-login não é possível.
   const { email: emailFromRegister } = useLocalSearchParams<{ email?: string | string[] }>();
 
   const [email, setEmail] = useState(() => (typeof emailFromRegister === 'string' ? emailFromRegister : ''));
@@ -32,7 +31,6 @@ export default function LoginScreen() {
     mapServerFieldErrors: (serverErrors) => {
       const mapped: Partial<Record<'email' | 'password', string>> = {};
       for (const [key, message] of Object.entries(serverErrors)) {
-        // O backend chama a senha de `senha`.
         if (key === 'senha' || key === 'password') mapped.password = message;
         if (key === 'email') mapped.email = message;
       }
@@ -40,7 +38,6 @@ export default function LoginScreen() {
     },
   });
 
-  // <Link asChild> renderiza via <Slot>, que não aceita arrays de estilo.
   const linkStyle = StyleSheet.flatten([styles.footerLink, { color: theme.primary }]);
 
   return (
@@ -95,6 +92,7 @@ export default function LoginScreen() {
           loading={isSubmitting}
           loadingLabel="Entrando..."
           onPress={() => void handleSubmit({ email, password }, signIn)}
+          leftIcon={<Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '700' }}>→</Text>}
         />
       </View>
 

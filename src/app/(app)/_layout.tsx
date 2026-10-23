@@ -15,6 +15,7 @@ export default function AppLayout() {
       }}
     >
       <Stack.Screen name="index" options={{ title: 'Meu Cofre' }} />
+      <Stack.Screen name="add" options={{ title: 'Nova Credencial', headerBackTitle: 'Voltar' }} />
     </Stack>
   );
 }
