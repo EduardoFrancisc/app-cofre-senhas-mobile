@@ -212,11 +212,30 @@ EXPO_PUBLIC_PROFILE_ENDPOINT=/auth/me
 - Na web há fallback para `localStorage` — aceitável só em desenvolvimento.
 - `EXPO_PUBLIC_*` não deve conter segredos; use EAS Environment variables.
 
-## Pendências conhecidas
+## Telas
+<img width="426" height="824" alt="image" src="https://github.com/user-attachments/assets/856a111b-a6e4-465b-8ca2-5f5541624763" />
 
-- [ ] CRUD do cofre (criar, editar, excluir, favoritar, buscar)
-- [ ] Refresh de token
-- [ ] Tela "esqueci minha senha"
-- [ ] Testes (unitários de auth/validação + E2E do fluxo de login)
-- [ ] `eas.json` e CI
-- [ ] Criptografia local das entradas
+Tela de login
+
+<img width="399" height="814" alt="image" src="https://github.com/user-attachments/assets/bff86f89-7d09-4873-bcd2-b4e065c70a06" />
+
+Tela de cadastro
+
+<img width="398" height="806" alt="image" src="https://github.com/user-attachments/assets/6317080c-13cb-4be5-a636-043a02a17633" />
+
+Home
+
+<img width="424" height="816" alt="image" src="https://github.com/user-attachments/assets/609f0757-0468-408d-9428-758ce60a0708" />
+
+Salvar credencial
+
+<img width="425" height="819" alt="image" src="https://github.com/user-attachments/assets/c174be13-ddfb-4d13-9084-d95dac6f257f" />
+
+Logout
+
+<img width="415" height="821" alt="image" src="https://github.com/user-attachments/assets/286acefc-9506-4a6e-83e1-617e27693924" />
+
+Visualização de credencial
+
+
+
