@@ -190,15 +190,15 @@ web.
 
 ### Perfil do usuário logado
 
-A API atual **não tem** rota de perfil. Por isso `EXPO_PUBLIC_PROFILE_ENDPOINT`
-vazio por padrão: chamar uma rota inexistente gerava `500` nos logs do servidor
-a cada abertura e a cada login, sem trazer nada. A sessão funciona normalmente
-nesse estado — só o nome na tela inicial fica genérico.
+A API do Render expõe `GET /auth/me`, que devolve o usuário logado a partir do
+token JWT. Por isso `EXPO_PUBLIC_PROFILE_ENDPOINT=/auth/me` por padrão: o nome e
+o e-mail são preenchidos na tela inicial após o login e na restauração da sessão.
 
-Para habilitar quando a rota existir, aponte para ela e nada mais muda:
+Se o backend não expuser essa rota, deixe a variável vazia — a sessão continua
+funcionando, apenas o nome fica genérico:
 
 ```bash
-EXPO_PUBLIC_PROFILE_ENDPOINT=/auth/me
+EXPO_PUBLIC_PROFILE_ENDPOINT=
 ```
 
 > Alternativa sem endpoint novo: o JWT traz o e-mail na claim `sub`. Dá para
