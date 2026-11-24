@@ -1,0 +1,44 @@
+{
+  "cli": {
+    "version": ">= 16.0.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://gerenciador-senhas-api.onrender.com",
+        "EXPO_PUBLIC_API_TIMEOUT_MS": "60000",
+        "EXPO_PUBLIC_PROFILE_ENDPOINT": "/auth/me",
+        "EXPO_PUBLIC_TIPO_USUARIO_PADRAO": "USUARIO_LEIGO"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://gerenciador-senhas-api.onrender.com",
+        "EXPO_PUBLIC_API_TIMEOUT_MS": "60000",
+        "EXPO_PUBLIC_PROFILE_ENDPOINT": "/auth/me",
+        "EXPO_PUBLIC_TIPO_USUARIO_PADRAO": "USUARIO_LEIGO"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://gerenciador-senhas-api.onrender.com",
+        "EXPO_PUBLIC_API_TIMEOUT_MS": "60000",
+        "EXPO_PUBLIC_PROFILE_ENDPOINT": "/auth/me",
+        "EXPO_PUBLIC_TIPO_USUARIO_PADRAO": "USUARIO_LEIGO"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}
